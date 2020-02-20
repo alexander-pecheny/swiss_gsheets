@@ -2,7 +2,7 @@
 
 ## Инструкция
 
-1. `pip install gspread networkx oauth2client PyOpenSSL`
+1. `pip install gspread networkx oauth2client PyOpenSSL` (лучше это делать в virtualenv)
 2. Заведите Service Account на Google Developers по [инструкции](https://gspread.readthedocs.io/en/latest/oauth2.html#using-signed-credentials)
 3. На client_email, который выглядит как `473000000000-yoursisdifferent@developer.gserviceaccount.com`, расшарьте свой док, чтобы можно было его редактировать
 4. Скопируйте файл example_config.json и отредактируйте его так, чтобы данные соответствовали вашим нуждам (подробно расписывать лень, будут вопросы — пишите)
