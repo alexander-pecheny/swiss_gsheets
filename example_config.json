@@ -1,0 +1,15 @@
+{
+    "table_key": "1sWmm86ur8WvHMiNfeJugABPmWxQZlt9n1zlBCAcRHdk",
+    "team_sheet_name": "Квалификация",
+    "pairings_sheet_name": "Паринги",
+    "pairings_range": "A1:C100",
+    "pairings_team1_column_name": "Команда 1",
+    "pairings_team2_column_name": "Команда 2",
+    "pairings_round_column_name": "Тур",
+    "team_column_name": "Команда",
+    "points_column_name": "{} тур",
+    "points_additional_column_name": "{} тур \"+\"",
+    "seeding_column_name": "Посев",
+    "rounds_range": "B1:Y33",
+    "keyfile_path": "путь к файлу с креденшлами для google api"
+}
