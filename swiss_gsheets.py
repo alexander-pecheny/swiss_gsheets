@@ -4,6 +4,7 @@ import argparse
 import itertools
 import json
 import gspread
+from gspread.models import Cell
 from oauth2client.service_account import ServiceAccountCredentials
 import networkx as nx
 
@@ -38,6 +39,9 @@ class SwissSystem:
         sheets = self.table.worksheets()
         self.rounds_sheet = [
             x for x in sheets if x.title == self.config["team_sheet_name"]
+        ][0]
+        self.pairings_sheet = [
+            x for x in sheets if x.title == self.config["pairings_sheet_name"]
         ][0]
         rounds_range = self.load_rounds_range()
         teams = values(rounds_range[self.config["team_column_name"]])
@@ -81,6 +85,34 @@ class SwissSystem:
             return pair
         return (pair[1], pair[0])
 
+    def write_pairings(self, pairings):
+        trange = TransformedRange(
+            self.pairings_sheet.range(self.config["pairings_range"])
+        )
+        round_column = [
+            cell
+            for cell in trange[self.config["pairings_round_column_name"]]
+            if cell.value
+        ]
+        if round_column:
+            row = max(cell.row for cell in round_column if cell.value) + 1
+        else:
+            row = 2
+        round_col = trange[self.config["pairings_round_column_name"]][0].col
+        team1_col = trange[self.config["pairings_team1_column_name"]][0].col
+        team2_col = trange[self.config["pairings_team2_column_name"]][0].col
+        to_update = []
+        for pair in pairings:
+            to_update.extend(
+                [
+                    Cell(row, round_col, self.round),
+                    Cell(row, team1_col, pair[0]),
+                    Cell(row, team2_col, pair[1]),
+                ]
+            )
+            row += 1
+        self.pairings_sheet.update_cells(to_update)
+
     def next_round(self):
         if self.round == 0:
             is_sorted = sorted(self.teams, key=lambda x: x["initial_seeding"])
@@ -93,6 +125,7 @@ class SwissSystem:
                 print("{} - {}".format(pair[0], pair[1]))
                 self.combs.remove(pair)
             self.round += 1
+            self.write_pairings(pairings)
             self.pairings.append(pairings)
             return pairings
         else:
@@ -147,6 +180,7 @@ class SwissSystem:
             if len(self.combs) == 0:
                 print("all combinations are exhausted!")
             self.round += 1
+            self.write_pairings(next_round_pairings)
             self.pairings.append(next_round_pairings)
             return next_round_pairings
 
@@ -155,9 +189,11 @@ class SwissSystem:
         return float(x.replace(",", "."))
 
     def get_points(self, trange):
-        teams = trange["Команда"]
-        points = trange["{} тур".format(self.round)]
-        points_additional = trange['{} тур "+"'.format(self.round)]
+        teams = trange[self.config["team_column_name"]]
+        points = trange[self.config["points_column_name"].format(self.round)]
+        points_additional = trange[
+            self.config["points_additional_column_name"].format(self.round)
+        ]
         return {
             x[0]: (self.wrapfloat(x[1]), self.wrapfloat(x[2]))
             for x in zip(
